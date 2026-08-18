@@ -1,527 +1,130 @@
 <!doctype html>
 <html lang="fr">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#111318" />
-  <title>ANC Lab V0</title>
-  <style>
-    :root{
-      color-scheme: dark;
-      --bg:#0d0f12; --card:#171a20; --card2:#1d2128; --text:#f4f6f8;
-      --muted:#9ca5b1; --accent:#63d6a4; --warn:#ffcc66; --bad:#ff7b7b; --line:#2b313b;
-    }
-    *{box-sizing:border-box}
-    body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
-    main{max-width:760px;margin:auto;padding:18px 14px 48px}
-    h1{font-size:26px;margin:0 0 4px}
-    h2{font-size:17px;margin:0 0 12px}
-    .muted{color:var(--muted)}
-    .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin:12px 0}
-    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-    .grow{flex:1 1 180px}
-    button,input{font:inherit}
-    button{border:0;border-radius:12px;padding:12px 14px;background:#2c333d;color:white;font-weight:700;cursor:pointer}
-    button.primary{background:var(--accent);color:#07140f}
-    button.danger{background:#5d2727}
-    button:disabled{opacity:.45;cursor:not-allowed}
-    .pill{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:5px 9px;margin:2px 4px 2px 0;color:var(--muted)}
-    .ok{color:var(--accent)} .warn{color:var(--warn)} .bad{color:var(--bad)}
-    label{display:block;color:var(--muted);font-size:13px;margin-bottom:5px}
-    input[type="number"]{width:100%;padding:10px;border:1px solid var(--line);border-radius:10px;background:#0f1216;color:white}
-    input[type="range"]{width:100%}
-    .metric{font-size:32px;font-weight:800;letter-spacing:-1px}
-    .metric small{font-size:14px;color:var(--muted);letter-spacing:0}
-    canvas{width:100%;height:180px;border-radius:10px;background:#0c0e11;display:block}
-    .mode{display:grid;grid-template-columns:1fr;gap:8px}
-    .mode label{display:flex;gap:10px;align-items:flex-start;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--card2);color:var(--text);font-size:14px}
-    .mode input{margin-top:4px}
-    .kv{display:grid;grid-template-columns:1fr auto;gap:8px;border-top:1px solid var(--line);padding:8px 0}
-    .peaks button{padding:7px 9px;margin:4px 4px 0 0;font-size:13px}
-    details{margin-top:10px}
-    code{background:#0b0d10;padding:2px 5px;border-radius:5px}
-    .tiny{font-size:12px}
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0d1015">
+<title>NoiseCancel V1</title>
+<style>
+:root{color-scheme:dark;--bg:#0d1015;--card:#171b22;--line:#2c3440;--text:#f3f6f8;--muted:#9aa6b2;--ok:#69dca7;--warn:#ffd166;--bad:#ff8080}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+main{max-width:780px;margin:auto;padding:16px 13px 60px}.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin:12px 0}
+h1{margin:0;font-size:27px}h2{font-size:18px;margin:0 0 10px}.muted{color:var(--muted)}.warn{color:var(--warn)}.ok{color:var(--ok)}.bad{color:var(--bad)}
+.row{display:flex;gap:9px;flex-wrap:wrap;align-items:center}.grow{flex:1 1 180px}button,input,select{font:inherit}button{border:0;border-radius:12px;padding:11px 13px;background:#2c3440;color:#fff;font-weight:700}button.primary{background:var(--ok);color:#071710}button.danger{background:#612b2b}button:disabled{opacity:.4}
+input[type=number],input[type=text],select{width:100%;padding:10px;border:1px solid var(--line);border-radius:10px;background:#10141a;color:white}input[type=range]{width:100%}label{display:block;color:var(--muted);font-size:13px;margin:7px 0 4px}
+.pill{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:5px 9px;margin:2px 4px 2px 0;color:var(--muted)}.big{font-size:36px;font-weight:850}.huge{font-size:48px;font-weight:900;text-align:center;padding:6px}
+canvas{width:100%;height:170px;background:#0b0e12;border-radius:10px;display:block}.tiny{font-size:12px}.progress{height:9px;background:#0e1217;border-radius:999px;overflow:hidden}.progress>div{height:100%;width:0;background:var(--ok)}
+.metric{display:grid;grid-template-columns:1fr auto;gap:8px;padding:8px 0;border-top:1px solid var(--line)}
+</style>
 </head>
 <body>
 <main>
-  <h1>ANC Lab V0</h1>
-  <div class="muted">Test d’anti-bruit tonal avec le téléphone — sans APK.</div>
+<h1>NoiseCancel V1</h1>
+<div class="muted">Capture la pompe → sauvegarde son profil → déplace le téléphone → pilote l’enceinte Bluetooth.</div>
 
-  <section class="card">
-    <h2>0 · État</h2>
-    <div id="secureStatus" class="pill">Contexte…</div>
-    <div id="micStatus" class="pill">Micro non initialisé</div>
-    <div id="audioStatus" class="pill">Audio non initialisé</div>
-    <p id="secureHelp" class="muted tiny"></p>
-    <button id="initBtn" class="primary">Initialiser audio + micro</button>
-  </section>
+<section class="card">
+<h2>0 · Initialiser</h2>
+<div id="secure" class="pill">Sécurité…</div><div id="audioState" class="pill">Audio non initialisé</div><div id="micState" class="pill">Micro non initialisé</div>
+<div class="row" style="margin-top:10px"><button id="init" class="primary">Initialiser audio + micro</button><button id="stopMic" disabled>Couper micro</button></div>
+</section>
 
-  <section class="card">
-    <h2>1 · Choisis l’expérience</h2>
-    <div class="mode">
-      <label>
-        <input type="radio" name="mode" value="source" checked>
-        <span><b>Mode 1 — SOURCE</b><br><span class="muted">Téléphone posé au plus près de la pompe. Bluetooth déconnecté : le HP du téléphone émet l’anti-ton.</span></span>
-      </label>
-      <label>
-        <input type="radio" name="mode" value="quiet">
-        <span><b>Mode 2 — QUIET ZONE</b><br><span class="muted">Téléphone au point d’écoute + enceinte Bluetooth près de toi. Android doit utiliser l’enceinte comme sortie média.</span></span>
-      </label>
-    </div>
-    <p id="modeHint" class="warn tiny">Le micro du même téléphone ne peut pas prouver une réduction dans toute la pièce. Pour le mode SOURCE, mesure idéalement avec un 2e téléphone/laptop à distance.</p>
-  </section>
+<section class="card">
+<h2>1 · Capturer la pompe</h2>
+<p class="muted">Pose le téléphone près de la pompe. On mémorise ses fréquences stables, pas un simple WAV à rejouer.</p>
+<div class="row"><div class="grow"><label>Nom</label><input id="profileName" type="text" value="Pompe aquarium"></div><div style="width:140px"><label>Durée</label><select id="captureSecs"><option>5</option><option selected>10</option><option>15</option></select></div></div>
+<div class="row" style="margin-top:10px"><button id="capture" class="primary" disabled>● Capturer</button></div>
+<div class="progress" style="margin:12px 0"><div id="progress"></div></div>
+<div class="big"><span id="mainFreq">—</span> <small style="font-size:14px">Hz</small></div>
+<div id="captureInfo" class="tiny muted"></div>
+<canvas id="spectrum" width="740" height="230"></canvas>
+</section>
 
-  <section class="card">
-    <h2>2 · Analyse de la pompe</h2>
-    <div class="row">
-      <button id="analyzeBtn" class="primary" disabled>Analyser 3 s</button>
-      <button id="stopMicBtn" disabled>Couper le micro</button>
-    </div>
-    <div style="margin-top:14px">
-      <div class="muted">Pic dominant</div>
-      <div class="metric"><span id="detectedFreq">—</span> <small>Hz</small></div>
-      <div id="peaks" class="peaks"></div>
-    </div>
-    <canvas id="spectrum" width="720" height="240"></canvas>
-    <details>
-      <summary class="muted">Réglages micro réellement appliqués</summary>
-      <pre id="micSettings" class="tiny muted">—</pre>
-    </details>
-  </section>
+<section class="card">
+<h2>2 · Profil sauvegardé</h2>
+<div class="row"><select id="profiles" class="grow"></select><button id="load">Charger</button><button id="del" class="danger">Supprimer</button></div>
+<div id="profileInfo" style="margin-top:10px"></div>
+</section>
 
-  <section class="card">
-    <h2>3 · Génère l’anti-ton</h2>
-    <div class="row">
-      <div class="grow">
-        <label>Fréquence cible (Hz)</label>
-        <input id="freqInput" type="number" min="20" max="2000" step="0.01" value="120.00">
-      </div>
-      <div class="grow">
-        <label>Micro-ajustement</label>
-        <div class="row">
-          <button class="fineBtn" data-delta="-0.10">−0.10</button>
-          <button class="fineBtn" data-delta="-0.01">−0.01</button>
-          <button class="fineBtn" data-delta="0.01">+0.01</button>
-          <button class="fineBtn" data-delta="0.10">+0.10</button>
-        </div>
-      </div>
-    </div>
+<section class="card">
+<h2>3 · Maintenant déplace le téléphone</h2>
+<p class="muted">Place l’enceinte Bluetooth <b>au plus près de la pompe</b>, connecte-la comme sortie média Android, puis prends le téléphone avec toi au canapé.</p>
+<p class="warn tiny">La phase absolue n’est pas stockable utilement : quand tu reviens 30 s plus tard, la pompe et Bluetooth ne sont plus synchronisés avec l’instant de la capture. On va donc rechercher la phase après coup.</p>
+</section>
 
-    <div style="margin-top:14px">
-      <label>Phase relative : <b><span id="phaseVal">180</span>°</b></label>
-      <input id="phase" type="range" min="0" max="359" value="180" step="1">
-    </div>
+<section class="card">
+<h2>4 · Générateur</h2>
+<div class="row"><div class="grow"><label>Fréquence du profil</label><select id="toneSelect"></select></div><div class="grow"><label>Correction fine (Hz)</label><input id="offset" type="number" min="-2" max="2" step="0.01" value="0"></div></div>
+<label>Volume logiciel : <b><span id="gainVal">10</span>%</b></label><input id="gain" type="range" min="0" max="50" value="10" step="1">
+<label>Phase : <b><span id="phaseVal">180</span>°</b></label><input id="phase" type="range" min="0" max="359" value="180" step="1">
+<div class="row" style="margin-top:10px"><button id="play" class="primary">▶ Jouer</button><button id="stop" class="danger" disabled>■ Stop</button></div>
+<p class="warn tiny">Commence vers 10–20 %, puis monte. Le volume système de l’enceinte est indépendant de ce slider.</p>
+</section>
 
-    <div style="margin-top:14px">
-      <label>Niveau de sortie : <b><span id="gainVal">5</span>%</b> (limité volontairement à 30%)</label>
-      <input id="gain" type="range" min="0" max="30" value="5" step="1">
-    </div>
+<section class="card">
+<h2>5 · Balayages automatiques</h2>
+<div class="huge" id="readout">—</div>
+<div class="row"><div class="grow"><label>Temps par valeur</label><select id="hold"><option value="1">1 s</option><option value="2" selected>2 s</option><option value="3">3 s</option><option value="5">5 s</option></select></div><div class="grow"><label>Pas de phase</label><select id="phaseStep"><option>5</option><option selected>10</option><option>15</option><option>30</option></select></div></div>
+<div class="row" style="margin-top:10px"><button id="sweepPhase" class="primary">Balayer phase</button><button id="keep" disabled>★ Garder maintenant</button><button id="abort" disabled>Annuler</button></div>
+<hr style="border:0;border-top:1px solid var(--line);margin:16px 0">
+<div class="row"><div class="grow"><label>Balayage fréquence ±</label><select id="freqSpan"><option value=".2">0,2 Hz</option><option value=".5" selected>0,5 Hz</option><option value="1">1 Hz</option></select></div><div class="grow"><label>Pas fréquence</label><select id="freqStep"><option value=".01">0,01 Hz</option><option value=".02" selected>0,02 Hz</option><option value=".05">0,05 Hz</option><option value=".1">0,10 Hz</option></select></div></div>
+<div class="row" style="margin-top:10px"><button id="sweepFreq">Balayer fréquence</button><button id="sweepGain">Balayer volume</button></div>
+</section>
 
-    <div class="row" style="margin-top:12px">
-      <button id="playBtn" class="primary">▶ Jouer</button>
-      <button id="stopBtn" class="danger" disabled>■ Stop</button>
-    </div>
-    <p class="warn tiny"><b>Commence à 5%.</b> Une sinusoïde basse fréquence forte peut faire travailler inutilement le petit HP du téléphone. Monte progressivement.</p>
-    <p class="muted tiny">La sortie utilisée est la sortie média Android actuelle. Pour le mode Bluetooth, connecte ton enceinte et sélectionne-la comme sortie média avant de cliquer sur Jouer.</p>
-  </section>
-
-  <section class="card">
-    <h2>4 · Auto phase scan <span class="warn">(expérimental)</span></h2>
-    <p class="muted">Teste plusieurs phases et garde celle qui minimise l’énergie mesurée autour de la fréquence cible <b>au micro du téléphone</b>.</p>
-    <div class="row">
-      <button id="autoPhaseBtn" disabled>Auto phase scan</button>
-      <button id="abortScanBtn" disabled>Annuler</button>
-    </div>
-    <div class="kv"><span class="muted">Meilleure phase</span><b id="bestPhase">—</b></div>
-    <div class="kv"><span class="muted">Résiduel relatif</span><b id="residual">—</b></div>
-    <p id="scanHint" class="warn tiny">SOURCE : ce scan minimise surtout ce que le micro du téléphone entend localement. Pour savoir si la pièce est vraiment plus silencieuse, utilise tes oreilles ou un 2e appareil placé dans la pièce.</p>
-  </section>
-
-  <section class="card">
-    <h2>Protocole rapide</h2>
-    <ol class="muted">
-      <li>Coupe tout autre bruit si possible.</li>
-      <li>Pose le téléphone au plus près de la pompe, sans boucher son HP.</li>
-      <li><b>Analyse 3 s</b>, puis touche un pic pour le copier comme fréquence cible.</li>
-      <li>Coupe le micro pour le test SOURCE, puis <b>Jouer</b>.</li>
-      <li>Déplace lentement <b>phase</b>, puis fréquence par ±0.01/0.10 Hz et niveau. Écoute depuis plusieurs endroits.</li>
-      <li>Pour le test Bluetooth, reconnecte le micro et utilise <b>Auto phase scan</b> au point d’écoute.</li>
-    </ol>
-  </section>
+<section class="card">
+<h2>6 · Mesure au canapé (optionnel)</h2>
+<p class="muted">Même si tu n’entends pas clairement la pompe, la FFT peut parfois voir sa raie étroite.</p>
+<button id="measure" disabled>Mesurer la fréquence ici</button>
+<div class="metric"><span class="muted">Ton</span><b id="targetDb">—</b></div>
+<div class="metric"><span class="muted">Bruit voisin</span><b id="noiseDb">—</b></div>
+<div class="metric"><span class="muted">SNR spectral</span><b id="snr">—</b></div>
+</section>
 </main>
-
 <script>
-(() => {
-  "use strict";
+(async()=>{
+'use strict';
+const $=id=>document.getElementById(id),TAU=2*Math.PI,sleep=ms=>new Promise(r=>setTimeout(r,ms));
+let ctx=null,stream=null,source=null,analyser=null,generator=null,currentProfile=null,sweepAbort=false,sweepKeep=false;
 
-  let ctx = null, analyser = null, micSource = null, micStream = null;
-  let osc = null, gainNode = null;
-  let spectrumRAF = null, scanAbort = false;
-  let lastBaselineDb = null;
+const worklet=`class ToneGen extends AudioWorkletProcessor{constructor(){super();this.f=100;this.g=.1;this.off=Math.PI;this.ph=0;this.on=false;this.port.onmessage=e=>{const d=e.data||{};if(d.f!=null)this.f=+d.f;if(d.g!=null)this.g=+d.g;if(d.phase!=null)this.off=+d.phase*Math.PI/180;if(d.on!=null)this.on=!!d.on}}process(i,o){const x=o[0]&&o[0][0];if(!x)return true;for(let n=0;n<x.length;n++){x[n]=this.on?Math.sin(this.ph+this.off)*this.g:0;this.ph+=2*Math.PI*this.f/sampleRate;if(this.ph>2*Math.PI)this.ph-=2*Math.PI}return true}}registerProcessor('tone-gen',ToneGen)`;
+const workletURL=URL.createObjectURL(new Blob([worklet],{type:'application/javascript'}));
 
-  const $ = (id) => document.getElementById(id);
-  const secureStatus = $("secureStatus");
-  const micStatus = $("micStatus");
-  const audioStatus = $("audioStatus");
-  const secureHelp = $("secureHelp");
-  const initBtn = $("initBtn");
-  const analyzeBtn = $("analyzeBtn");
-  const stopMicBtn = $("stopMicBtn");
-  const detectedFreq = $("detectedFreq");
-  const freqInput = $("freqInput");
-  const phase = $("phase");
-  const phaseVal = $("phaseVal");
-  const gain = $("gain");
-  const gainVal = $("gainVal");
-  const playBtn = $("playBtn");
-  const stopBtn = $("stopBtn");
-  const autoPhaseBtn = $("autoPhaseBtn");
-  const abortScanBtn = $("abortScanBtn");
-  const bestPhase = $("bestPhase");
-  const residual = $("residual");
-  const canvas = $("spectrum");
-  const c2d = canvas.getContext("2d");
-  const peaksEl = $("peaks");
-  const micSettings = $("micSettings");
-  const modeHint = $("modeHint");
-  const scanHint = $("scanHint");
+function secure(){const ok=window.isSecureContext;$('secure').textContent=ok?'✓ HTTPS / secure':'⚠ non sécurisé';$('secure').className='pill '+(ok?'ok':'bad')}secure();
 
-  function updateSecurity() {
-    const ok = window.isSecureContext && !!navigator.mediaDevices?.getUserMedia;
-    secureStatus.textContent = ok ? "✓ contexte sécurisé" : "⚠ micro web bloqué";
-    secureStatus.className = "pill " + (ok ? "ok" : "bad");
-    if (!ok) {
-      secureHelp.innerHTML =
-        "Le générateur audio fonctionnera, mais le navigateur bloque le micro sur une IP HTTP. " +
-        "Utilise <code>https://…</code>, <code>localhost</code>, ou ouvre le fichier localement si ton navigateur l’autorise.";
-    } else {
-      secureHelp.textContent = "Le navigateur peut demander l’autorisation micro au premier clic.";
-    }
-  }
+async function ensureAudio(){if(!ctx){ctx=new (window.AudioContext||window.webkitAudioContext)({latencyHint:'interactive'});await ctx.audioWorklet.addModule(workletURL);generator=new AudioWorkletNode(ctx,'tone-gen',{numberOfInputs:0,numberOfOutputs:1,outputChannelCount:[1]});generator.connect(ctx.destination)}if(ctx.state==='suspended')await ctx.resume();$('audioState').textContent=`✓ Audio ${ctx.sampleRate} Hz`;$('audioState').className='pill ok'}
+async function ensureMic(){await ensureAudio();if(stream)return;stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false,channelCount:1},video:false});source=ctx.createMediaStreamSource(stream);analyser=ctx.createAnalyser();analyser.fftSize=32768;analyser.smoothingTimeConstant=.08;analyser.minDecibels=-120;analyser.maxDecibels=-10;source.connect(analyser);$('micState').textContent='✓ Micro actif';$('micState').className='pill ok';$('capture').disabled=false;$('stopMic').disabled=false;$('measure').disabled=false;drawSpectrum()}
+function stopMic(){if(stream)stream.getTracks().forEach(t=>t.stop());try{source&&source.disconnect()}catch{}stream=source=analyser=null;$('micState').textContent='Micro coupé';$('micState').className='pill';$('capture').disabled=true;$('stopMic').disabled=true;$('measure').disabled=true}
+$('init').onclick=async()=>{try{await ensureMic()}catch(e){alert(e.message)}};$('stopMic').onclick=stopMic;
 
-  function ensureContext() {
-    if (!ctx) {
-      ctx = new (window.AudioContext || window.webkitAudioContext)({
-        latencyHint: "interactive"
-      });
-    }
-    if (ctx.state === "suspended") ctx.resume();
-    audioStatus.textContent = `✓ Audio ${Math.round(ctx.sampleRate)} Hz`;
-    audioStatus.className = "pill ok";
-    return ctx;
-  }
+function drawSpectrum(){if(!analyser||!ctx)return;const cv=$('spectrum'),g=cv.getContext('2d'),d=new Float32Array(analyser.frequencyBinCount);analyser.getFloatFrequencyData(d);g.fillStyle='#0b0e12';g.fillRect(0,0,cv.width,cv.height);const maxHz=1200,bh=ctx.sampleRate/analyser.fftSize,max=Math.min(d.length-1,Math.floor(maxHz/bh));g.strokeStyle='#69dca7';g.lineWidth=2;g.beginPath();for(let i=1;i<=max;i++){const x=i/max*cv.width,db=Math.max(-100,Math.min(-10,d[i])),y=cv.height-(db+100)/90*cv.height;i===1?g.moveTo(x,y):g.lineTo(x,y)}g.stroke();requestAnimationFrame(drawSpectrum)}
 
-  async function initMic() {
-    ensureContext();
-    if (!navigator.mediaDevices?.getUserMedia) {
-      throw new Error("Micro indisponible : la page doit être ouverte dans un contexte sécurisé (HTTPS/localhost).");
-    }
-    if (micStream) return;
+async function capture(){if(!analyser)return;const secs=+$('captureSecs').value||10,bins=analyser.frequencyBinCount,acc=new Float64Array(bins),tmp=new Float32Array(bins);let frames=0,start=performance.now(),end=start+secs*1000;$('capture').disabled=true;$('progress').style.width='0%';while(performance.now()<end){analyser.getFloatFrequencyData(tmp);for(let i=0;i<bins;i++)if(Number.isFinite(tmp[i]))acc[i]+=Math.pow(10,tmp[i]/10);frames++;$('progress').style.width=Math.min(100,(performance.now()-start)/(secs*10))+'%';await sleep(40)}const avg=new Float64Array(bins);for(let i=0;i<bins;i++)avg[i]=acc[i]/frames;const bh=ctx.sampleRate/analyser.fftSize,min=Math.ceil(40/bh),max=Math.min(bins-2,Math.floor(1200/bh));let cand=[];for(let i=min+1;i<max;i++)if(avg[i]>avg[i-1]&&avg[i]>avg[i+1]){let y1=Math.log(avg[i-1]+1e-30),y2=Math.log(avg[i]+1e-30),y3=Math.log(avg[i+1]+1e-30),den=y1-2*y2+y3,delta=den?0.5*(y1-y3)/den:0;delta=Math.max(-.5,Math.min(.5,delta));cand.push({f:(i+delta)*bh,p:avg[i]})}cand.sort((a,b)=>b.p-a.p);let picked=[];for(const c of cand){if(picked.every(x=>Math.abs(x.f-c.f)>10)){picked.push(c);if(picked.length>=6)break}}if(!picked.length){alert('Aucun pic détecté');$('capture').disabled=false;return}const mp=picked[0].p,tones=picked.map(x=>({f:+x.f.toFixed(3),relDb:+(10*Math.log10(x.p/mp)).toFixed(1)}));const p={id:'p'+Date.now(),name:$('profileName').value.trim()||'Profil',created:new Date().toISOString(),duration:secs,tones};saveProfile(p);currentProfile=p;refreshProfiles();renderProfile(p);$('mainFreq').textContent=tones[0].f.toFixed(3);$('captureInfo').innerHTML=`${tones.length} pics sauvegardés. <span class="warn">La fréquence affichée est une estimation : utilise ensuite le balayage fin ±0,5 Hz pour verrouiller réellement le son.</span>`;$('progress').style.width='100%';$('capture').disabled=false}
+$('capture').onclick=capture;
 
-    const constraints = {
-      audio: {
-        echoCancellation: false,
-        noiseSuppression: false,
-        autoGainControl: false,
-        channelCount: 1
-      },
-      video: false
-    };
+function profiles(){try{return JSON.parse(localStorage.getItem('nc_v1_profiles')||'[]')}catch{return[]}}
+function saveProfile(p){let a=profiles().filter(x=>x.id!==p.id);a.push(p);localStorage.setItem('nc_v1_profiles',JSON.stringify(a))}
+function refreshProfiles(){const a=profiles(),s=$('profiles');s.innerHTML='';if(!a.length){s.innerHTML='<option value="">Aucun profil</option>';return}a.slice().reverse().forEach(p=>{const o=document.createElement('option');o.value=p.id;o.textContent=`${p.name} — ${p.tones[0].f.toFixed(2)} Hz`;s.appendChild(o)});if(currentProfile)s.value=currentProfile.id}
+function renderProfile(p){$('profileInfo').innerHTML=`<b>${p.name}</b><br>${p.tones.map((t,i)=>`#${i+1} ${t.f.toFixed(3)} Hz (${t.relDb} dB)`).join(' · ')}`;const s=$('toneSelect');s.innerHTML='';p.tones.forEach((t,i)=>{const o=document.createElement('option');o.value=i;o.textContent=`#${i+1} — ${t.f.toFixed(3)} Hz (${t.relDb} dB)`;s.appendChild(o)});updateGen()}
+$('load').onclick=()=>{const p=profiles().find(x=>x.id===$('profiles').value);if(p){currentProfile=p;renderProfile(p)}};
+$('del').onclick=()=>{const id=$('profiles').value;if(!id)return;localStorage.setItem('nc_v1_profiles',JSON.stringify(profiles().filter(x=>x.id!==id)));if(currentProfile?.id===id)currentProfile=null;refreshProfiles();$('profileInfo').innerHTML='';$('toneSelect').innerHTML=''};refreshProfiles();
 
-    micStream = await navigator.mediaDevices.getUserMedia(constraints);
-    micSource = ctx.createMediaStreamSource(micStream);
-    analyser = ctx.createAnalyser();
-    analyser.fftSize = 32768;
-    analyser.smoothingTimeConstant = 0.12;
-    analyser.minDecibels = -120;
-    analyser.maxDecibels = -10;
-    micSource.connect(analyser); // volontairement PAS connecté à destination
+function selectedFreq(){if(!currentProfile)return 100;const i=+$('toneSelect').value||0;return currentProfile.tones[i].f+(+$('offset').value||0)}
+function updateGen(){if(!generator)return;generator.port.postMessage({f:selectedFreq(),g:(+$('gain').value||0)/100,phase:+$('phase').value||0})}
+$('gain').oninput=()=>{$('gainVal').textContent=$('gain').value;updateGen()};$('phase').oninput=()=>{$('phaseVal').textContent=$('phase').value;updateGen()};$('offset').oninput=updateGen;$('toneSelect').onchange=updateGen;
+$('play').onclick=async()=>{if(!currentProfile)return alert('Capture ou charge un profil.');await ensureAudio();updateGen();generator.port.postMessage({on:true});$('play').disabled=true;$('stop').disabled=false};
+$('stop').onclick=()=>{generator&&generator.port.postMessage({on:false});$('play').disabled=false;$('stop').disabled=true};
+function playing(){return $('play').disabled}
 
-    const track = micStream.getAudioTracks()[0];
-    micSettings.textContent = JSON.stringify(track.getSettings ? track.getSettings() : {}, null, 2);
+async function beginSweep(){await ensureAudio();if(!playing())$('play').click();sweepAbort=false;sweepKeep=false;$('abort').disabled=false;$('keep').disabled=false}
+function endSweep(){ $('abort').disabled=true;$('keep').disabled=true }
+$('abort').onclick=()=>{sweepAbort=true};$('keep').onclick=()=>{sweepKeep=true;$('readout').textContent='Gardé';endSweep()};
 
-    micStatus.textContent = "✓ micro actif";
-    micStatus.className = "pill ok";
-    analyzeBtn.disabled = false;
-    stopMicBtn.disabled = false;
-    autoPhaseBtn.disabled = false;
-    drawSpectrum();
-  }
+$('sweepPhase').onclick=async()=>{if(!currentProfile)return alert('Charge un profil.');await beginSweep();const step=+$('phaseStep').value||10,hold=(+$('hold').value||2)*1000;for(let p=0;p<360;p+=step){if(sweepAbort||sweepKeep)break;$('phase').value=p;$('phase').dispatchEvent(new Event('input'));$('readout').textContent=p+'°';await sleep(hold)}if(!sweepKeep)$('readout').textContent='Terminé';endSweep()};
+$('sweepFreq').onclick=async()=>{if(!currentProfile)return alert('Charge un profil.');await beginSweep();const span=+$('freqSpan').value||.5,step=+$('freqStep').value||.02,hold=(+$('hold').value||2)*1000;for(let x=-span;x<=span+1e-9;x+=step){if(sweepAbort||sweepKeep)break;$('offset').value=x.toFixed(3);updateGen();$('readout').textContent=(x>=0?'+':'')+x.toFixed(3)+' Hz';await sleep(hold)}if(!sweepKeep)$('readout').textContent='Terminé';endSweep()};
+$('sweepGain').onclick=async()=>{if(!currentProfile)return alert('Charge un profil.');await beginSweep();const hold=(+$('hold').value||2)*1000;for(let g=5;g<=50;g+=5){if(sweepAbort||sweepKeep)break;$('gain').value=g;$('gain').dispatchEvent(new Event('input'));$('readout').textContent=g+' %';await sleep(hold)}if(!sweepKeep)$('readout').textContent='Terminé';endSweep()};
 
-  function stopMic() {
-    if (spectrumRAF) cancelAnimationFrame(spectrumRAF);
-    spectrumRAF = null;
-    if (micSource) { try { micSource.disconnect(); } catch(e){} }
-    if (micStream) micStream.getTracks().forEach(t => t.stop());
-    micSource = null; micStream = null; analyser = null;
-    micStatus.textContent = "Micro coupé";
-    micStatus.className = "pill";
-    analyzeBtn.disabled = true;
-    stopMicBtn.disabled = true;
-    autoPhaseBtn.disabled = true;
-  }
-
-  function drawSpectrum() {
-    if (!analyser || !ctx) return;
-    const data = new Float32Array(analyser.frequencyBinCount);
-    analyser.getFloatFrequencyData(data);
-
-    const W = canvas.width, H = canvas.height;
-    c2d.clearRect(0, 0, W, H);
-    c2d.fillStyle = "#0c0e11";
-    c2d.fillRect(0, 0, W, H);
-
-    c2d.strokeStyle = "#252a32";
-    c2d.lineWidth = 1;
-    for (let i=1;i<5;i++) {
-      const y = i*H/5;
-      c2d.beginPath(); c2d.moveTo(0,y); c2d.lineTo(W,y); c2d.stroke();
-    }
-
-    const maxHz = 1200;
-    const binHz = ctx.sampleRate / analyser.fftSize;
-    const maxBin = Math.min(data.length-1, Math.floor(maxHz/binHz));
-
-    c2d.strokeStyle = "#63d6a4";
-    c2d.lineWidth = 2;
-    c2d.beginPath();
-    for (let i=1;i<=maxBin;i++) {
-      const x = (i/maxBin)*W;
-      const db = Math.max(-100, Math.min(-10, data[i]));
-      const y = H - ((db+100)/90)*H;
-      if (i===1) c2d.moveTo(x,y); else c2d.lineTo(x,y);
-    }
-    c2d.stroke();
-
-    c2d.fillStyle = "#8d96a2";
-    c2d.font = "14px system-ui";
-    c2d.fillText("0 Hz", 8, H-8);
-    c2d.fillText("1200 Hz", W-70, H-8);
-
-    spectrumRAF = requestAnimationFrame(drawSpectrum);
-  }
-
-  async function analyze(seconds=3) {
-    if (!analyser || !ctx) return;
-    analyzeBtn.disabled = true;
-    analyzeBtn.textContent = "Analyse…";
-
-    const bins = analyser.frequencyBinCount;
-    const accum = new Float64Array(bins);
-    let frames = 0;
-    const temp = new Float32Array(bins);
-    const end = performance.now() + seconds*1000;
-
-    while (performance.now() < end) {
-      analyser.getFloatFrequencyData(temp);
-      for (let i=0;i<bins;i++) {
-        if (Number.isFinite(temp[i])) accum[i] += Math.pow(10, temp[i]/10);
-      }
-      frames++;
-      await sleep(35);
-    }
-
-    const avg = new Float64Array(bins);
-    for (let i=0;i<bins;i++) avg[i] = accum[i] / Math.max(1, frames);
-
-    const binHz = ctx.sampleRate / analyser.fftSize;
-    const minBin = Math.ceil(40/binHz);
-    const maxBin = Math.min(bins-2, Math.floor(1200/binHz));
-
-    let best = minBin;
-    for (let i=minBin+1;i<=maxBin;i++) if (avg[i] > avg[best]) best = i;
-
-    // Interpolation parabolique autour du pic (sur log power)
-    const y1 = Math.log(avg[best-1] + 1e-30);
-    const y2 = Math.log(avg[best] + 1e-30);
-    const y3 = Math.log(avg[best+1] + 1e-30);
-    const denom = (y1 - 2*y2 + y3);
-    let delta = denom !== 0 ? 0.5*(y1-y3)/denom : 0;
-    delta = Math.max(-0.5, Math.min(0.5, delta));
-    const hz = (best + delta)*binHz;
-
-    detectedFreq.textContent = hz.toFixed(2);
-    freqInput.value = hz.toFixed(2);
-
-    // Top 6 pics, séparés de >= 15 Hz
-    const candidates = [];
-    for (let i=minBin+1;i<maxBin;i++) {
-      if (avg[i] > avg[i-1] && avg[i] > avg[i+1]) {
-        candidates.push({i, p:avg[i]});
-      }
-    }
-    candidates.sort((a,b)=>b.p-a.p);
-    const selected = [];
-    for (const c of candidates) {
-      const f = c.i*binHz;
-      if (selected.every(s => Math.abs(s.f-f) >= 15)) {
-        selected.push({f, p:c.p});
-        if (selected.length >= 6) break;
-      }
-    }
-    peaksEl.innerHTML = "";
-    selected.forEach((p, idx) => {
-      const b = document.createElement("button");
-      b.textContent = `${idx+1}: ${p.f.toFixed(1)} Hz`;
-      b.onclick = () => { freqInput.value = p.f.toFixed(2); updateTone(); };
-      peaksEl.appendChild(b);
-    });
-
-    analyzeBtn.disabled = false;
-    analyzeBtn.textContent = "Analyser 3 s";
-  }
-
-  function phaseWave(deg) {
-    const r = deg * Math.PI / 180;
-    // sin(wt + φ) = sin(wt)cosφ + cos(wt)sinφ
-    const real = new Float32Array([0, Math.sin(r)]);
-    const imag = new Float32Array([0, Math.cos(r)]);
-    return ctx.createPeriodicWave(real, imag, {disableNormalization:true});
-  }
-
-  function startTone() {
-    ensureContext();
-    if (osc) return;
-    osc = ctx.createOscillator();
-    gainNode = ctx.createGain();
-    osc.frequency.value = clamp(parseFloat(freqInput.value)||120, 20, 2000);
-    osc.setPeriodicWave(phaseWave(parseFloat(phase.value)));
-    gainNode.gain.value = (parseFloat(gain.value)||0)/100;
-    osc.connect(gainNode).connect(ctx.destination);
-    osc.start();
-    playBtn.disabled = true;
-    stopBtn.disabled = false;
-  }
-
-  function stopTone() {
-    if (osc) {
-      try { osc.stop(); } catch(e){}
-      try { osc.disconnect(); } catch(e){}
-    }
-    if (gainNode) { try { gainNode.disconnect(); } catch(e){} }
-    osc = null; gainNode = null;
-    playBtn.disabled = false;
-    stopBtn.disabled = true;
-  }
-
-  function updateTone() {
-    phaseVal.textContent = phase.value;
-    gainVal.textContent = gain.value;
-    if (!ctx || !osc) return;
-    const f = clamp(parseFloat(freqInput.value)||120, 20, 2000);
-    osc.frequency.setTargetAtTime(f, ctx.currentTime, 0.01);
-    osc.setPeriodicWave(phaseWave(parseFloat(phase.value)));
-    gainNode.gain.setTargetAtTime((parseFloat(gain.value)||0)/100, ctx.currentTime, 0.015);
-  }
-
-  async function bandDb(targetHz, durationMs=300) {
-    if (!analyser || !ctx) return NaN;
-    const data = new Float32Array(analyser.frequencyBinCount);
-    const binHz = ctx.sampleRate / analyser.fftSize;
-    const center = Math.round(targetHz/binHz);
-    const tEnd = performance.now()+durationMs;
-    let sum = 0, n = 0;
-    while(performance.now() < tEnd) {
-      analyser.getFloatFrequencyData(data);
-      let p=0;
-      for(let k=-2;k<=2;k++){
-        const i = Math.max(0, Math.min(data.length-1, center+k));
-        if(Number.isFinite(data[i])) p += Math.pow(10, data[i]/10);
-      }
-      sum += p; n++;
-      await sleep(35);
-    }
-    return 10*Math.log10(sum/Math.max(1,n) + 1e-30);
-  }
-
-  async function autoPhaseScan() {
-    if (!analyser) return alert("Active le micro d’abord.");
-    ensureContext();
-    if (!osc) startTone();
-    scanAbort = false;
-    autoPhaseBtn.disabled = true;
-    abortScanBtn.disabled = false;
-    bestPhase.textContent = "scan…";
-    residual.textContent = "…";
-
-    const f = parseFloat(freqInput.value)||120;
-    // baseline utile seulement comme repère local
-    lastBaselineDb = await bandDb(f, 250);
-
-    let results = [];
-    for (let ph=0; ph<360; ph+=30) {
-      if (scanAbort) break;
-      phase.value = ph; updateTone();
-      await sleep(160);
-      const db = await bandDb(f, 220);
-      results.push({ph,db});
-      bestPhase.textContent = `${ph}° → ${db.toFixed(1)} dB rel.`;
-    }
-    if (!scanAbort && results.length) {
-      let best = results.reduce((a,b)=> b.db<a.db ? b:a);
-      const fine = [];
-      for (let d=-30; d<=30; d+=5) {
-        if (scanAbort) break;
-        const ph = (best.ph + d + 360) % 360;
-        phase.value = ph; updateTone();
-        await sleep(120);
-        const db = await bandDb(f, 180);
-        fine.push({ph,db});
-      }
-      if (fine.length) best = fine.reduce((a,b)=> b.db<a.db ? b:a);
-      phase.value = best.ph; updateTone();
-      bestPhase.textContent = `${Math.round(best.ph)}°`;
-      residual.textContent = `${best.db.toFixed(1)} dB relatif`;
-    }
-
-    autoPhaseBtn.disabled = false;
-    abortScanBtn.disabled = true;
-  }
-
-  function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
-  function clamp(v,a,b){ return Math.min(b,Math.max(a,v)); }
-
-  initBtn.addEventListener("click", async () => {
-    try {
-      ensureContext();
-      await initMic();
-    } catch (e) {
-      micStatus.textContent = "✗ " + e.message;
-      micStatus.className = "pill bad";
-      analyzeBtn.disabled = true;
-      // audio output reste utilisable
-    }
-  });
-  stopMicBtn.addEventListener("click", stopMic);
-  analyzeBtn.addEventListener("click", () => analyze(3));
-  playBtn.addEventListener("click", startTone);
-  stopBtn.addEventListener("click", stopTone);
-  phase.addEventListener("input", updateTone);
-  gain.addEventListener("input", updateTone);
-  freqInput.addEventListener("input", updateTone);
-  document.querySelectorAll(".fineBtn").forEach(b => b.addEventListener("click", () => {
-    const v = (parseFloat(freqInput.value)||120) + parseFloat(b.dataset.delta);
-    freqInput.value = v.toFixed(2);
-    updateTone();
-  }));
-  autoPhaseBtn.addEventListener("click", autoPhaseScan);
-  abortScanBtn.addEventListener("click", () => { scanAbort = true; abortScanBtn.disabled = true; });
-  document.querySelectorAll('input[name="mode"]').forEach(r => r.addEventListener("change", () => {
-    const mode = document.querySelector('input[name="mode"]:checked').value;
-    if (mode === "source") {
-      modeHint.textContent = "SOURCE : Bluetooth déconnecté. Place le téléphone au plus près de la pompe, HP dégagé.";
-      scanHint.textContent = "SOURCE : le scan automatique minimise surtout le micro local. Pour juger la pièce, utilise tes oreilles ou un 2e appareil distant.";
-    } else {
-      modeHint.textContent = "QUIET ZONE : connecte l’enceinte Bluetooth et choisis-la comme sortie média Android. Garde le téléphone au point que tu veux rendre plus calme.";
-      scanHint.textContent = "QUIET ZONE : le micro du téléphone est justement le point d’erreur à minimiser. Si Android laisse bien AEC/AGC désactivés, l’Auto phase scan devient beaucoup plus pertinent.";
-    }
-  }));
-
-  window.addEventListener("pagehide", () => { stopTone(); stopMic(); });
-  updateSecurity();
-  phaseVal.textContent = phase.value;
-  gainVal.textContent = gain.value;
+async function measure(){if(!analyser||!ctx||!currentProfile)return;const f=selectedFreq(),d=new Float32Array(analyser.frequencyBinCount),bh=ctx.sampleRate/analyser.fftSize,c=Math.round(f/bh);let tp=0,np=0,n=0,end=performance.now()+1000;while(performance.now()<end){analyser.getFloatFrequencyData(d);let t=0,q=0,qc=0;for(let k=-2;k<=2;k++)t+=Math.pow(10,d[Math.max(0,Math.min(d.length-1,c+k))]/10);for(let k=-18;k<=18;k++)if(Math.abs(k)>5){q+=Math.pow(10,d[Math.max(0,Math.min(d.length-1,c+k))]/10);qc++}tp+=t/5;np+=q/qc;n++;await sleep(40)}const tdb=10*Math.log10(tp/n+1e-30),ndb=10*Math.log10(np/n+1e-30),s=tdb-ndb;$('targetDb').textContent=tdb.toFixed(1)+' dB rel.';$('noiseDb').textContent=ndb.toFixed(1)+' dB rel.';$('snr').textContent=s.toFixed(1)+' dB';$('snr').className=s>=6?'ok':s>=3?'warn':'bad'}
+$('measure').onclick=measure;
+window.addEventListener('pagehide',()=>{try{generator&&generator.port.postMessage({on:false})}catch{};stopMic()});
 })();
 </script>
 </body>
