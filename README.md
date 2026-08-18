@@ -1,4 +1,4 @@
-# NoiseCancel V1
+# NoiseCancel V1 -- Edit : Résultats peu probant
 
 ## Workflow
 
@@ -20,6 +20,4 @@ La V1 ne rejoue pas le WAV inversé. Une capture audio faite à un instant donn�
 
 La fréquence extraite par la FFT reste une estimation. Le balayage fin ±0,5 Hz est là pour corriger cette estimation et compenser les petites différences d'horloge.
 
-## GitHub Pages
 
-Remplace simplement l'ancien `index.html` de ton repo par celui-ci et commit sur `main`. GitHub Pages redéploiera automatiquement.
